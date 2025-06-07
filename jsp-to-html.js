@@ -10,7 +10,8 @@ class JSPToHTMLConverter {
     this.directivePattern = /<%@(.+?)%>/gs;
     this.declarationPattern = /<%!(.+?)%>/gs;
     this.commentPattern = /<%--(.+?)--%>/gs;
-    this.cssSetPattern = /<c:set\s+var="css_file_names"\s+value="([^"]+)"\s*\/>/g;
+    // <c:set>タグを柔軟に検出するパターン
+    this.cssSetPattern = /<c:set\b[^>]*\/?>(?:<\/c:set>)?/gi;
     this.linkPattern = /<link[^>]+rel=["']stylesheet["'][^>]*>/gi;
     this.stylePattern = /<style[^>]*>[\s\S]*?<\/style>/gi;
     this.extractedCssFiles = [];
@@ -31,7 +32,13 @@ class JSPToHTMLConverter {
     
     const cssMatches = [...htmlContent.matchAll(this.cssSetPattern)];
     cssMatches.forEach(match => {
-      match[1].split(',').forEach(file => cssFileSet.add(file.trim()));
+      const tag = match[0];
+      if (/var=["']css_file_names["']/i.test(tag)) {
+        const valueMatch = tag.match(/value=["']([^"']+)["']/i);
+        if (valueMatch) {
+          valueMatch[1].split(',').forEach(file => cssFileSet.add(file.trim()));
+        }
+      }
     });
 
     // コメント内のCSS指定を探す

@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JSP to HTML Converter</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .input-section, .output-section {
+            margin-bottom: 30px;
+        }
+        .preview-container {
+            margin-top: 20px;
+        }
+        .preview-frame {
+            width: 100%;
+            height: 500px;
+            border: 2px solid #ddd;
+            border-radius: 4px;
+        }
+        .tab-container {
+            margin-bottom: 10px;
+        }
+        .tab-button {
+            padding: 8px 16px;
+            border: none;
+            background-color: #f0f0f0;
+            cursor: pointer;
+            margin-right: 5px;
+            border-radius: 4px 4px 0 0;
+        }
+        .tab-button.active {
+            background-color: #4CAF50;
+            color: white;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #555;
+        }
+        textarea {
+            width: 100%;
+            height: 200px;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            resize: vertical;
+            box-sizing: border-box;
+        }
+        textarea:focus {
+            border-color: #4CAF50;
+            outline: none;
+        }
+        .convert-btn {
+            display: block;
+            width: 200px;
+            margin: 20px auto;
+            padding: 12px 24px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .convert-btn:hover {
+            background-color: #45a049;
+        }
+        .download-btn {
+            background-color: #2196F3;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 10px;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .download-btn:hover {
+            background-color: #1976D2;
+        }
+        .file-input {
+            margin-bottom: 15px;
+        }
+        .file-input input[type="file"] {
+            padding: 8px;
+            border: 2px solid #ddd;
+            border-radius: 4px;
+            background-color: white;
+        }
+        .instructions {
+            background-color: #e8f5e8;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            border-left: 4px solid #4CAF50;
+        }
+        #output {
+            white-space: pre-wrap;
+            border: 2px solid #ddd;
+            padding: 12px;
+            background-color: #f9f9f9;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            border-radius: 4px;
+            min-height: 200px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>JSP to HTML Converter</h1>
+        
+        <div class="instructions">
+            <h3>使用方法:</h3>
+            <ul>
+                <li>JSPファイルをアップロードするか、下のテキストエリアに直接JSPコードを入力してください</li>
+                <li>「変換実行」ボタンをクリックして変換を実行します</li>
+                <li>変換されたHTMLコードが表示され、ダウンロードできます</li>
+            </ul>
+        </div>
+
+        <div class="input-section">
+            <label for="jsp-file">JSPファイルをアップロード (オプション):</label>
+            <div class="file-input">
+                <input type="file" id="jsp-file" accept=".jsp" />
+            </div>
+            
+            <label for="jsp-input">JSPコード入力:</label>
+            <textarea id="jsp-input" placeholder="JSPコードをここに入力してください..."><%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>サンプルJSPページ</title>
+</head>
+<body>
+    <h1>JSPからHTMLへの変換テスト</h1>
+    
+    <%-- これはJSPコメントです --%>
+    
+    <p>ユーザー名: <%= request.getParameter("username") %></p>
+    <p>セッションID: <%= session.getAttribute("sessionId") %></p>
+    
+    <%
+        String message = "Hello, World!";
+        out.println("動的メッセージ: " + message);
+    %>
+    
+    <div>
+        <% if (request.getParameter("showDetails") != null) { %>
+            <p>詳細情報が表示されます</p>
+        <% } %>
+    </div>
+    
+</body>
+</html></textarea>
+        </div>
+
+        <button class="convert-btn" onclick="convertJSP()">変換実行</button>
+
+        <div class="output-section">
+            <div class="tab-container">
+                <button class="tab-button active" onclick="showTab('source')">ソースコード</button>
+                <button class="tab-button" onclick="showTab('preview')">プレビュー</button>
+            </div>
+            <div id="source-view">
+                <label for="html-output">変換されたHTML:</label>
+                <div id="output" placeholder="変換結果がここに表示されます..."></div>
+            </div>
+            <div id="preview-container" class="preview-container" style="display: none;">
+                <iframe id="preview-frame" class="preview-frame"></iframe>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class JSPToHTMLConverter {
+            constructor() {
+                this.scriptletPattern = /<%(.+?)%>/gs;
+                this.expressionPattern = /<%=(.+?)%>/gs;
+                this.directivePattern = /<%@(.+?)%>/gs;
+                this.declarationPattern = /<%!(.+?)%>/gs;
+                this.commentPattern = /<%--(.+?)--%>/gs;
+                this.cssSetPattern = /<c:set\s+var="css_file_names"\s+value="([^"]+)"\s*\/>/g;
+                this.linkPattern = /<link[^>]+rel=["']stylesheet["'][^>]*>/gi;
+                this.stylePattern = /<style[^>]*>[\s\S]*?<\/style>/gi;
+                this.extractedCssFiles = [];
+                this.cssFolder = 'css';
+            }
+
+            convert(jspContent) {
+                let htmlContent = jspContent;
+
+                // 既存のCSS linkタグを抽出
+                const existingLinks = [...htmlContent.matchAll(this.linkPattern)];
+                
+                // 既存のstyleタグを抽出
+                const existingStyles = [...htmlContent.matchAll(this.stylePattern)];
+
+                // CSSファイル名を抽出して保存（重複を避けるためSetを使用）
+                const cssFileSet = new Set();
+                
+                const cssMatches = [...htmlContent.matchAll(this.cssSetPattern)];
+                cssMatches.forEach(match => {
+                    match[1].split(',').forEach(file => cssFileSet.add(file.trim()));
+                });
+
+                // コメント内のCSS指定を探す（より柔軟なパターン）
+                const cssCommentMatches = [...htmlContent.matchAll(/<%--\s*css\s*:\s*([^-]+)\s*--%>/gi)];
+                cssCommentMatches.forEach(match => {
+                    match[1].split(',').forEach(file => cssFileSet.add(file.trim()));
+                });
+
+                // スクリプトレット内のCSS設定を探す
+                const scriptletCssMatches = [...htmlContent.matchAll(/<%[^>]*String\s+cssFiles\s*=\s*"([^"]+)"[^>]*%>/gi)];
+                scriptletCssMatches.forEach(match => {
+                    match[1].split(',').forEach(file => cssFileSet.add(file.trim()));
+                });
+                
+                this.extractedCssFiles = Array.from(cssFileSet).filter(file => file.length > 0);
+
+                htmlContent = htmlContent.replace(this.commentPattern, '');
+                htmlContent = htmlContent.replace(this.directivePattern, '');
+                htmlContent = htmlContent.replace(this.declarationPattern, '');
+                htmlContent = htmlContent.replace(this.expressionPattern, (match, code) => {
+                    return this.processExpression(code.trim());
+                });
+                htmlContent = htmlContent.replace(this.scriptletPattern, (match, code) => {
+                    return this.processScriptlet(code.trim());
+                });
+
+                // c:setタグを削除
+                htmlContent = htmlContent.replace(this.cssSetPattern, '');
+
+                // 抽出したCSSファイルのリンクを追加
+                if (this.extractedCssFiles.length > 0) {
+                    const cssLinks = this.extractedCssFiles
+                        .map(file => {
+                            // ファイル名だけの場合はcssフォルダのパスを追加
+                            const cssPath = file.includes('/') ? file : `${this.cssFolder}/${file}`;
+                            return `<link rel="stylesheet" href="${cssPath}" />`;
+                        })
+                        .join('\n    ');
+                    
+                    // headタグ内にCSSリンクを挿入
+                    if (htmlContent.includes('</head>')) {
+                        htmlContent = htmlContent.replace('</head>', `    ${cssLinks}\n</head>`);
+                    } else if (htmlContent.includes('<head>')) {
+                        htmlContent = htmlContent.replace('<head>', `<head>\n    ${cssLinks}`);
+                    }
+                }
+
+                return htmlContent;
+            }
+
+            processExpression(code) {
+                if (code.includes('request.getParameter')) {
+                    const paramMatch = code.match(/request\.getParameter\("(.+?)"\)/);
+                    if (paramMatch) {
+                        return `[${paramMatch[1]}]`;
+                    }
+                }
+                
+                if (code.includes('session.getAttribute')) {
+                    const attrMatch = code.match(/session\.getAttribute\("(.+?)"\)/);
+                    if (attrMatch) {
+                        return `[session:${attrMatch[1]}]`;
+                    }
+                }
+
+                if (code.startsWith('"') && code.endsWith('"')) {
+                    return code.slice(1, -1);
+                }
+
+                return `[${code}]`;
+            }
+
+            processScriptlet(code) {
+                if (code.includes('if') && code.includes('{')) {
+                    return `<!-- ${code} -->`;
+                }
+                
+                if (code.includes('for') && code.includes('{')) {
+                    return `<!-- ${code} -->`;
+                }
+                
+                if (code.includes('out.println')) {
+                    const printMatch = code.match(/out\.println\("(.+?)"\)/);
+                    if (printMatch) {
+                        return printMatch[1];
+                    }
+                }
+                
+                return `<!-- ${code} -->`;
+            }
+        }
+
+        // ファイルアップロード処理
+        document.getElementById('jsp-file').addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('jsp-input').value = e.target.result;
+                };
+                reader.readAsText(file);
+            }
+        });
+
+        // 変換処理
+        function convertJSP() {
+            const jspInput = document.getElementById('jsp-input').value;
+            if (!jspInput.trim()) {
+                alert('JSPコードを入力してください。');
+                return;
+            }
+
+            const converter = new JSPToHTMLConverter();
+            const htmlOutput = converter.convert(jspInput);
+            
+            document.getElementById('output').textContent = htmlOutput;
+            
+            // プレビューの更新
+            const previewFrame = document.getElementById('preview-frame');
+            // CSSファイルのパスを相対パスとして扱うためのベースURLを設定
+            const previewContent = `
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <base href="/css/" />
+                    ${htmlOutput}
+                </head>
+                </html>
+            `;
+            previewFrame.srcdoc = previewContent;
+            
+            // 既存のダウンロードボタンを削除
+            const existingBtn = document.querySelector('.download-btn');
+            if (existingBtn) {
+                existingBtn.remove();
+            }
+            
+            // ダウンロードボタンの作成
+            const downloadBtn = document.createElement('a');
+            downloadBtn.className = 'download-btn';
+            downloadBtn.textContent = 'HTMLファイルをダウンロード';
+            downloadBtn.onclick = function() {
+                const blob = new Blob([htmlOutput], { type: 'text/html' });
+                const url = URL.createObjectURL(blob);
+                this.href = url;
+                this.download = 'converted.html';
+            };
+            
+            document.getElementById('output').after(downloadBtn);
+        }
+
+        function showTab(tabName) {
+            // タブボタンのアクティブ状態を更新
+            const buttons = document.querySelectorAll('.tab-button');
+            buttons.forEach(button => {
+                button.classList.remove('active');
+            });
+            event.target.classList.add('active');
+
+            // 表示の切り替え
+            const sourceView = document.getElementById('source-view');
+            const previewContainer = document.getElementById('preview-container');
+
+            if (tabName === 'source') {
+                sourceView.style.display = 'block';
+                previewContainer.style.display = 'none';
+            } else {
+                sourceView.style.display = 'none';
+                previewContainer.style.display = 'block';
+            }
+        }
+    </script>
+</body>
+</html> 
